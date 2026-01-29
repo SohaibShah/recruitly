@@ -111,7 +111,7 @@ export default function DashboardLayout({
       {/* Main Content Area */}
       <main className="flex flex-1 flex-col overflow-hidden">
         {/* Header (Mobile-friendly + Theme Toggle) */}
-        <header className="flex h-14 items-center gap-4 border-b border-border bg-background px-6 lg:h-[60px]">
+        <header className="flex h-14 items-center gap-4 border-b border-border bg-background px-6 lg:h-15">
             <div className="flex-1">
                 <h1 className="text-lg font-semibold text-foreground">Overview</h1>
             </div>
