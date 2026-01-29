@@ -137,7 +137,7 @@ const DashboardPage = () => {
               <CardContent className="grid gap-6 pt-6 md:grid-cols-2">
                 <div className="md:col-span-2">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-primary" /> Summary
+                    <FileText className="w-4 h-4 text-primary" /> Professional Summary
                   </h3>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {result.summary}
