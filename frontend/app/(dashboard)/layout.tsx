@@ -50,7 +50,7 @@ export default function DashboardLayout({
       {/* CHANGE: 'bg-white' -> 'bg-background', 'border-slate-200' -> 'border-border' */}
       <aside className="hidden w-64 flex-col border-r border-border bg-background md:flex">
         <div className="p-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold tracking-tight text-primary">HireAI</h2>
+          <h2 className="text-2xl font-bold tracking-tight text-primary">Recruitly</h2>
           {/* Optional: Add Theme Toggle in Sidebar */}
         </div>
         

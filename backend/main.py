@@ -2,13 +2,13 @@ import os
 import io
 from typing import List
 
-from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
-import google.generativeai as genai
-from pdfminer.high_level import extract_text
+import google.generativeai as genai # type: ignore
+from pdfminer.high_level import extract_text # pyright: ignore[reportMissingImports]
 
 load_dotenv()
 
@@ -20,7 +20,7 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 class ResumeAnalysis(BaseModel):
     candidate_name: str
-    years_of_experience: int
+    years_of_experience: float
     skills: List[str]
     summary: str
     rating_score: int
@@ -48,7 +48,11 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
         return ""
     
 @app.post("/analyze-resume", response_model=ResumeAnalysis)
-async def analyze_resume(file: UploadFile = File(...)):
+async def analyze_resume(
+    file: UploadFile = File(...),
+    job_title: str = Form(...),
+    job_description: str = Form(...)
+):
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="Only PDF files are supported")
     
@@ -64,18 +68,25 @@ async def analyze_resume(file: UploadFile = File(...)):
     )
     
     prompt = f"""
-    You are an expert HR AI. Analyze the following resume text and extract the details strictly in JSON format.
+    You are an expert Technical Recruiter. 
     
-    Resume Text:
+    Role: {job_title}
+    Job Description: {job_description}
+    
+    Candidate Resume:
     {resume_text}
+    
+    Task:
+    Analyze the candidate's suitability for THIS SPECIFIC ROLE. 
+    Give a 'rating_score' from 0 to 100 based strictly on how well they match the Job Description.
     
     Required JSON Structure:
     {{
-        "candidate_name": "Name of candidate",
+        "candidate_name": "Name",
         "years_of_experience": 0.0,
         "skills": ["skill1", "skill2"],
-        "summary": "2 sentence professional summary",
-        "rating_score": 85,
+        "summary": "Brief summary highlighting fit for the role",
+        "rating_score": 0,
         "pros": ["strength1", "strength2"],
         "cons": ["weakness1", "weakness2"]
     }}
@@ -83,7 +94,6 @@ async def analyze_resume(file: UploadFile = File(...)):
     
     try:
         response = model.generate_content(prompt)
-        
         return ResumeAnalysis.model_validate_json(response.text)
     except Exception as e:
         print(f"AI Error: {e}")
