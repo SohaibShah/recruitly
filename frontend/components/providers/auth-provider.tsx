@@ -2,21 +2,30 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { createClient } from "@supabase/supabase-js"
-import { useRouter } from "next/navigation"
-import { sup } from "framer-motion/client"
-import { sign } from "crypto"
+import { User } from "@supabase/supabase-js"
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 )
 
-const AuthContext = createContext<any>(null)
+interface AuthContextType {
+    user: User | null
+    loading: boolean
+    signInWithGoogle: () => Promise<void>
+    signOut: () => Promise<void>
+}
+
+const AuthContext = createContext<AuthContextType>({
+    user: null,
+    loading: true,
+    signInWithGoogle: async () => { },
+    signOut: async () => { }
+})
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-    const [user, setUser] = useState<any>(null)
+    const [user, setUser] = useState<User | null>(null)
     const [loading, setLoading] = useState(true)
-    const router = useRouter()
 
     useEffect(() => {
         // Check if there's an active session
@@ -32,15 +41,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (_event, session) => {
                 setUser(session?.user ?? null)
-                if (!session) router.push("/login")
+                setLoading(false)
             }
         )
 
         return () => subscription.unsubscribe()
-    }, [router])
+    }, [])
 
     const signInWithGoogle = async () => {
-        await supabase.auth.signInWithOAuth({ provider: "google" })
+        await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+                queryParams: {
+                    prompt: 'consent',
+                    access_type: 'offline',
+                }
+            }
+        })
     }
 
     const signOut = async () => {
@@ -49,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     return (
         <AuthContext.Provider value={{ user, loading, signInWithGoogle, signOut }}>
-            {!loading && children}
+            {children}
         </AuthContext.Provider>
     )
 }
